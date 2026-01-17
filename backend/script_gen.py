@@ -41,6 +41,14 @@ Editorial rules:
 
 
 def build_user_prompt(info: dict) -> str:
+    # Extract text from confirmed_facts (handle both string and object formats)
+    confirmed_facts_text = []
+    for fact in info["confirmed_facts"]:
+        if isinstance(fact, dict):
+            confirmed_facts_text.append(fact.get("text", ""))
+        else:
+            confirmed_facts_text.append(fact)
+    
     return f"""
 You are given verified, structured information about current global events.
 
@@ -53,7 +61,7 @@ SUMMARY:
 {info["summary"]}
 
 CONFIRMED FACTS:
-- """ + "\n- ".join(info["confirmed_facts"]) + """
+- """ + "\n- ".join(confirmed_facts_text) + """
 
 UNCONFIRMED / DEVELOPING CLAIMS:
 - """ + ("\n- ".join(info["unconfirmed_claims"]) if info["unconfirmed_claims"] else "None") + """
