@@ -51,6 +51,13 @@ export const BrieflyView: React.FC<{ data: BriefingData }> = ({ data }) => {
                 </div>
             </div>
 
+            {/* Media Carousel - Under Video */}
+            {data.media && data.media.length > 0 && (
+                <div className="mb-8">
+                    <MediaCarousel media={data.media} />
+                </div>
+            )}
+
             {/* Podcast Audio Player */}
             {data.audio_url && (
                 <div className="mb-8 p-4 glass-panel rounded-xl flex items-center gap-4 animate-fade-in border-l-4 border-blue-500">

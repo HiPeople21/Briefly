@@ -221,17 +221,19 @@ async def websocket_briefing(websocket: WebSocket):
             return
 
         # Send status that we're starting generation
-        await websocket.send_json({
-            "type": "status",
-            "content": f"Starting briefing generation for '{topic}' ({location})..."
-        })
+        # (moved inside generator to maintain proper queue ordering)
 
         def run_briefing():
+            yield {"type": "status", "content": f"Starting briefing generation for '{topic}' ({location})...\n"}
+            
             chat = client.chat.create(
                 model="grok-4-1-fast",
                 tools=[x_search(enable_image_understanding=True, enable_video_understanding=True)],
                 include=["verbose_streaming"],
             )
+            
+            # Immediately send a status to confirm connection is working
+            yield {"type": "status", "content": "Connected to Grok AI...\n"}
 
             prompt_text = f"""You are a news analyst covering news from {location}. Search X for images about {location}. Return ONLY valid JSON with this structure:
 {{
@@ -329,14 +331,12 @@ CRITICAL: Include ONLY 2-3 images from X about {location} (pbs.twimg.com URLs). 
             # ✅ GENERATE SCRIPT AND AUDIO synchronously before sending result
             audio_url = ""
             try:
-                print("DEBUG: Starting script generation...", file=sys.stderr, flush=True)
                 yield {"type": "status", "content": "🎙️ Generating podcast script...\n"}
                 
                 briefing_json = json.loads(filtered_content)
                 script_segments = create_script_from_briefing(briefing_json)
                 
                 if script_segments:
-                    print(f"DEBUG: Generated {len(script_segments)} script segments", file=sys.stderr, flush=True)
                     yield {"type": "status", "content": "🎵 Generating audio (this may take a minute)...\n"}
                     
                     filename = f"podcast_{uuid.uuid4().hex}.wav"
@@ -349,17 +349,12 @@ CRITICAL: Include ONLY 2-3 images from X about {location} (pbs.twimg.com URLs). 
                     loop.close()
                     
                     audio_url = f"http://localhost:8000{audio_path}"
-                    print(f"DEBUG: Audio generated: {audio_url}", file=sys.stderr, flush=True)
                     
                     # Inject audio_url into the briefing JSON
                     briefing_json["audio_url"] = audio_url
                     filtered_content = json.dumps(briefing_json)
                     
-                else:
-                    print("DEBUG: No script segments generated", file=sys.stderr, flush=True)
-                    
             except Exception as e:
-                print(f"DEBUG: Error in script/audio generation: {e}", file=sys.stderr, flush=True)
                 # Don't fail the whole request, just log and continue without audio
                 import traceback
                 traceback.print_exc()
@@ -389,11 +384,14 @@ CRITICAL: Include ONLY 2-3 images from X about {location} (pbs.twimg.com URLs). 
         try:
             while True:
                 try:
-                    msg_type, data = message_queue.get(timeout=0.1)
+                    msg_type, data = message_queue.get(timeout=0.01)
                     
                     if msg_type == "message":
                         if websocket.client_state.value == 1:
                             await websocket.send_json(data)
+                            # Force immediate send with small delay to prevent buffering
+                            import asyncio
+                            await asyncio.sleep(0.001)
                     elif msg_type == "error":
                         await websocket.send_json({"type": "error", "message": data})
                         break
@@ -403,6 +401,12 @@ CRITICAL: Include ONLY 2-3 images from X about {location} (pbs.twimg.com URLs). 
                 except queue.Empty:
                     if websocket.client_state.value != 1:
                         break
+                    # Small sleep to yield to event loop
+                    import asyncio
+                    try:
+                        await asyncio.sleep(0.001)
+                    except:
+                        pass
                     continue
                     
         except Exception as send_err:
@@ -413,7 +417,6 @@ CRITICAL: Include ONLY 2-3 images from X about {location} (pbs.twimg.com URLs). 
     except WebSocketDisconnect:
         return
     except Exception as e:
-        print(f"DEBUG: Error in websocket: {str(e)}", file=sys.stderr, flush=True)
         import traceback
         traceback.print_exc()
         try:

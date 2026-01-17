@@ -1,6 +1,6 @@
 import React from 'react';
 import { BriefingTopic, BriefingLocation } from '../types';
-import { Loader2, Zap, Film, Search } from 'lucide-react';
+import { Loader2, Zap, Search } from 'lucide-react';
 import { clsx } from 'clsx';
 
 interface BrieflyControlsProps {
@@ -11,7 +11,6 @@ interface BrieflyControlsProps {
     onGenerate: () => void;
     isLoading: boolean;
     hasData: boolean;
-    onSwitchToScript?: () => void;
 }
 
 export const BrieflyControls: React.FC<BrieflyControlsProps> = ({
@@ -21,12 +20,14 @@ export const BrieflyControls: React.FC<BrieflyControlsProps> = ({
     setLocation,
     onGenerate,
     isLoading,
-    hasData,
-    onSwitchToScript
+    hasData
 }) => {
     const [countrySearch, setCountrySearch] = React.useState('');
     const [showCountryDropdown, setShowCountryDropdown] = React.useState(false);
+    const [topicSearch, setTopicSearch] = React.useState('');
+    const [showTopicDropdown, setShowTopicDropdown] = React.useState(false);
     const dropdownRef = React.useRef<HTMLDivElement>(null);
+    const topicDropdownRef = React.useRef<HTMLDivElement>(null);
 
     // Close dropdown when clicking outside
     React.useEffect(() => {
@@ -34,11 +35,22 @@ export const BrieflyControls: React.FC<BrieflyControlsProps> = ({
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setShowCountryDropdown(false);
             }
+            if (topicDropdownRef.current && !topicDropdownRef.current.contains(event.target as Node)) {
+                setShowTopicDropdown(false);
+            }
         };
 
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    const topics = [
+        { value: 'general', label: 'General' },
+        { value: 'tech', label: 'Technology' },
+        { value: 'financial-markets', label: 'Financial Markets' },
+        { value: 'sports', label: 'Sports' },
+        { value: 'entertainment', label: 'Entertainment' },
+    ];
 
     const countries = [
         { value: 'worldwide', label: 'Worldwide', group: '' },
@@ -174,6 +186,12 @@ export const BrieflyControls: React.FC<BrieflyControlsProps> = ({
         { value: 'papua-new-guinea', label: '🇵🇬 Papua New Guinea', group: 'Oceania' },
     ];
 
+    const filteredTopics = topics.filter(topic =>
+        topic.label.toLowerCase().includes(topicSearch.toLowerCase())
+    );
+
+    const selectedTopic = topics.find(t => t.value === topic);
+
     const filteredCountries = countries.filter(country =>
         country.label.toLowerCase().includes(countrySearch.toLowerCase())
     );
@@ -202,22 +220,62 @@ export const BrieflyControls: React.FC<BrieflyControlsProps> = ({
             <div className="flex flex-col gap-4 w-full max-w-md animate-slide-up">
 
                 <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="relative flex-1">
-                        <select
-                            value={topic}
-                            onChange={(e) => setTopic(e.target.value as BriefingTopic)}
-                            disabled={isLoading}
-                            className="w-full appearance-none glass-panel rounded-xl pl-4 pr-12 py-4 text-lg outline-none focus:ring-2 focus:ring-blue-500/50 cursor-pointer text-white [&>option]:bg-gray-900 [&>option]:text-gray-200"
-                        >
-                            <option value="general">General</option>
-                            <option value="tech">Technology</option>
-                            <option value="financial-markets">Financial Markets</option>
-                            <option value="sports">Sports</option>
-                            <option value="entertainment">Entertainment</option>
-                        </select>
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                            ▼
+                    <div className="relative flex-1" ref={topicDropdownRef}>
+                        <div className="relative">
+                            <input
+                                type="text"
+                                value={topicSearch}
+                                onChange={(e) => {
+                                    setTopicSearch(e.target.value);
+                                    setShowTopicDropdown(true);
+                                }}
+                                onFocus={() => setShowTopicDropdown(true)}
+                                onBlur={() => {
+                                    if (topicSearch === '') {
+                                        setTopicSearch('');
+                                    }
+                                }}
+                                disabled={isLoading}
+                                placeholder={selectedTopic?.label || "Select topic..."}
+                                className="w-full glass-panel rounded-xl pl-10 pr-12 py-4 text-lg outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-gray-500"
+                            />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                            <div 
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer"
+                                onClick={() => setShowTopicDropdown(!showTopicDropdown)}
+                            >
+                                {showTopicDropdown ? '▲' : '▼'}
+                            </div>
                         </div>
+
+                        {showTopicDropdown && (
+                            <div className="absolute z-50 w-full mt-2 bg-gray-900 border border-gray-700 rounded-xl max-h-60 overflow-y-auto shadow-xl">
+                                {filteredTopics.length > 0 ? (
+                                    <div className="py-2">
+                                        {filteredTopics.map((t) => (
+                                            <button
+                                                key={t.value}
+                                                onClick={() => {
+                                                    setTopic(t.value as BriefingTopic);
+                                                    setTopicSearch('');
+                                                    setShowTopicDropdown(false);
+                                                }}
+                                                className={clsx(
+                                                    "w-full text-left px-4 py-2 hover:bg-white/10 transition-colors",
+                                                    topic === t.value && "bg-blue-500/20"
+                                                )}
+                                            >
+                                                {t.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="px-4 py-8 text-center text-gray-400">
+                                        No topics found
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     <div className="relative flex-1" ref={dropdownRef}>
@@ -319,17 +377,6 @@ export const BrieflyControls: React.FC<BrieflyControlsProps> = ({
                     <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
                 </button>
             </div>
-
-            {/* Script Generation Button */}
-            {!hasData && (
-                <button
-                    onClick={onSwitchToScript}
-                    className="text-sm text-gray-400 hover:text-blue-400 transition-colors flex items-center gap-2 mt-4"
-                >
-                    <Film className="w-4 h-4" />
-                    Or generate a video script with Grok
-                </button>
-            )}
 
         </div>
     );
