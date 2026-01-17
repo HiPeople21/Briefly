@@ -1,11 +1,18 @@
 import os
+import json
+import uuid
+import asyncio
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from xai_sdk import Client
 from xai_sdk.chat import user
 from xai_sdk.tools import x_search
+
+from script_gen import generate_script
+from audio_gen import generate_audio
 
 load_dotenv()
 
@@ -20,6 +27,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Serve audio files
+if not os.path.exists("audio"):
+    os.makedirs("audio")
+app.mount("/audio", StaticFiles(directory="audio"), name="audio")
+
 client = Client(api_key=os.getenv("XAI_API_KEY"))
 
 class VideoScriptRequest(BaseModel):
@@ -32,15 +44,17 @@ class BriefingRequest(BaseModel):
     topic: str
 
 class BriefingResponse(BaseModel):
-    script: str
+    script: str # This is the JSON string of the briefing
+    audio_url: str
 
 @app.post("/generate-briefing", response_model=BriefingResponse)
 async def generate_briefing(request: BriefingRequest):
-    """Generate a news briefing using Grok API based on the given topic."""
+    """Generate a news briefing, script, and audio podcast."""
     if not os.getenv("XAI_API_KEY"):
         raise HTTPException(status_code=500, detail="XAI_API_KEY not configured")
     
     try:
+        # 1. Generate Briefing Content (JSON text)
         chat = client.chat.create(
             model="grok-4-1-fast",
             tools=[x_search(enable_image_understanding=True, enable_video_understanding=True)],
@@ -61,9 +75,34 @@ async def generate_briefing(request: BriefingRequest):
             if chunk.content:
                 content += chunk.content
 
-        print(content)
+        print(f"Briefing Content Generated: {len(content)} chars")
+
+        # 2. Generate Script from Briefing Content
+        full_audio_url = ""
+        try:
+            briefing_json = json.loads(content)
+            print("Briefing JSON parsed successfully.")
+            
+            script_segments = generate_script(briefing_json)
+            # script_gen returns a list of segments
+            
+            # 3. Generate Audio
+            filename = f"podcast_{uuid.uuid4().hex}.wav"
+            audio_url = await generate_audio(script_segments, filename)
+            
+            # Convert audio_url (relative path) to full URL if needed, or keeping it relative is fine for the frontend if using valid base URL
+            # For now, we return relative "/audio/filename.wav"
+            full_audio_url = f"http://localhost:8000{audio_url}"
+            
+        except json.JSONDecodeError:
+            print("Failed to parse briefing JSON for script generation.")
+            full_audio_url = ""
+        except Exception as e:
+            print(f"Error during podcast generation: {e}")
+            full_audio_url = ""
         
-        return BriefingResponse(script=content)
+        return BriefingResponse(script=content, audio_url=full_audio_url)
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating briefing: {str(e)}")
 
