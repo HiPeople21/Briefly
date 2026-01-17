@@ -6,6 +6,8 @@ import json
 from script_gen import generate_script
 import subprocess
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import threading
 
 load_dotenv()
 
@@ -129,27 +131,59 @@ def generate_single_video(segment: dict, segment_number: int, max_duration: int 
         return None
 
 
-def generate_videos(script_segments):
-    """Generate a video for each segment in the script"""
-    video_urls = []
+def generate_videos(script_segments, max_workers: int = 5):
+    """Generate videos for all segments in parallel"""
+    video_urls = [None] * len(script_segments)  # Pre-allocate list
     
-    print(f"\n🎥 Starting video generation for {len(script_segments)} segments")
+    print(f"\n🎥 Starting parallel video generation for {len(script_segments)} segments")
+    print(f"   Max concurrent workers: {max_workers}")
     print(f"{'='*60}\n")
     
-    for i, segment in enumerate(script_segments, start=1):
-        video_url = generate_single_video(segment, i)
+    # Thread-safe printing
+    print_lock = threading.Lock()
+    
+    def generate_with_index(index_and_segment):
+        """Wrapper to track segment index"""
+        i, segment = index_and_segment
+        segment_number = i + 1
+        
+        video_url = generate_single_video(segment, segment_number)
         
         if video_url:
-            video_urls.append({
-                "segment": i,
+            return i, {
+                "segment": segment_number,
                 "url": video_url,
                 "start_sec": segment["start_sec"],
                 "end_sec": segment["end_sec"],
                 "narration": segment["narration"]
-            })
+            }
         else:
-            print(f"⚠️  Skipping segment {i} due to error\n")
-            video_urls.append(None)
+            with print_lock:
+                print(f"⚠️  Segment {segment_number} failed\n")
+            return i, None
+    
+    # Generate all videos in parallel
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        # Submit all tasks
+        futures = {
+            executor.submit(generate_with_index, (i, segment)): i 
+            for i, segment in enumerate(script_segments)
+        }
+        
+        # Collect results as they complete
+        completed = 0
+        for future in as_completed(futures):
+            try:
+                index, result = future.result()
+                video_urls[index] = result
+                completed += 1
+                
+                with print_lock:
+                    print(f"📊 Progress: {completed}/{len(script_segments)} videos completed\n")
+                    
+            except Exception as e:
+                with print_lock:
+                    print(f"❌ Error in parallel generation: {e}\n")
     
     print(f"\n{'='*60}")
     print(f"✅ Generation complete!")
@@ -284,24 +318,23 @@ def combine_videos(video_urls: list, output_filename: str = "final_video.mp4"):
             print(f"❌ Re-encoding also failed: {e2.stderr}")
             return None
 
-
-# Main execution
-# def generate_news_reporting_video(briefing_data):
+# Update your main execution
+# if __name__ == "__main__":
+#     with open("test_json.json", "r") as f:
+#         data = json.load(f)
     
 #     print("Generating script from briefing...")
-#     script = generate_script(briefing_data)
+#     script = generate_script(data)
 #     print(f"✓ Script generated with {len(script)} segments\n")
-
-#     # Generate videos
-#     video_urls = generate_videos(script)
-
+    
+#     # Generate videos in parallel (5 at a time)
+#     video_urls = generate_videos(script, max_workers=10)
+    
 #     # Combine all videos
 #     final_video = combine_videos(video_urls, output_filename="news_briefing_final.mp4")
-
+    
 #     if final_video:
 #         print(f"\n{'='*60}")
 #         print(f"🎉 All done!")
 #         print(f"{'='*60}")
 #         print(f"Final video: {final_video}")
-    
-#     return final_video
