@@ -11,6 +11,10 @@ interface BrieflyControlsProps {
     onGenerate: () => void;
     isLoading: boolean;
     hasData: boolean;
+    generateAudio: boolean;
+    setGenerateAudio: (value: boolean) => void;
+    generateVideo: boolean;
+    setGenerateVideo: (value: boolean) => void;
 }
 
 export const BrieflyControls: React.FC<BrieflyControlsProps> = ({
@@ -20,7 +24,11 @@ export const BrieflyControls: React.FC<BrieflyControlsProps> = ({
     setLocation,
     onGenerate,
     isLoading,
-    hasData
+    hasData,
+    generateAudio,
+    setGenerateAudio,
+    generateVideo,
+    setGenerateVideo
 }) => {
     const [countrySearch, setCountrySearch] = React.useState('');
     const [showCountryDropdown, setShowCountryDropdown] = React.useState(false);
@@ -354,6 +362,28 @@ export const BrieflyControls: React.FC<BrieflyControlsProps> = ({
                             </div>
                         )}
                     </div>
+                </div>
+
+                {/* Media options checkboxes */}
+                <div className="flex gap-6 px-4">
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                        <input
+                            type="checkbox"
+                            checked={generateAudio}
+                            onChange={(e) => setGenerateAudio(e.target.checked)}
+                            className="w-5 h-5 rounded border border-white/30 bg-white/5 checked:bg-blue-600 checked:border-blue-600 cursor-pointer accent-blue-600"
+                        />
+                        <span className="text-sm text-gray-300 group-hover:text-white transition-colors">🎙️ Audio Podcast</span>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                        <input
+                            type="checkbox"
+                            checked={generateVideo}
+                            onChange={(e) => setGenerateVideo(e.target.checked)}
+                            className="w-5 h-5 rounded border border-white/30 bg-white/5 checked:bg-blue-600 checked:border-blue-600 cursor-pointer accent-blue-600"
+                        />
+                        <span className="text-sm text-gray-300 group-hover:text-white transition-colors">🎬 Video</span>
+                    </label>
                 </div>
 
                 <button

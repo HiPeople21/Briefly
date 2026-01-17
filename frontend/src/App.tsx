@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { flushSync } from 'react-dom';
 import { BrieflyControls } from './components/BrieflyControls';
 import { BrieflyView } from './components/BrieflyView';
@@ -14,6 +14,16 @@ function App() {
     const [streamLog, setStreamLog] = useState('');
     const [stopStream, setStopStream] = useState<(() => void) | null>(null);
     const [showThinking, setShowThinking] = useState(true);
+    const [generateAudio, setGenerateAudio] = useState(true);
+    const [generateVideo, setGenerateVideo] = useState(false);
+    const thinkingPanelRef = useRef<HTMLDivElement>(null);
+
+    // Auto-scroll thinking panel to bottom when new messages arrive
+    useEffect(() => {
+        if (thinkingPanelRef.current) {
+            thinkingPanelRef.current.scrollTop = thinkingPanelRef.current.scrollHeight;
+        }
+    }, [streamLog]);
 
     const handleGenerate = async () => {
         if (stopStream) {
@@ -24,6 +34,8 @@ function App() {
         setStreamLog('');
         try {
             const cancel = streamBriefing(topic, location, {
+                generateAudio,
+                generateVideo,
                 onChunk: (chunk) => {
                     // Force immediate DOM update for each message
                     flushSync(() => setStreamLog((prev) => prev + chunk));
@@ -99,6 +111,10 @@ function App() {
                     onGenerate={handleGenerate}
                     isLoading={isLoading}
                     hasData={!!data}
+                    generateAudio={generateAudio}
+                    setGenerateAudio={setGenerateAudio}
+                    generateVideo={generateVideo}
+                    setGenerateVideo={setGenerateVideo}
                 />
                 {(isLoading || streamLog) && !data && (
                     <div className="w-full max-w-4xl mx-auto my-6">
@@ -110,7 +126,7 @@ function App() {
                             <span>✨ AI Thinking Process</span>
                         </button>
                         {showThinking && (
-                            <div className="glass-panel p-4 text-sm text-gray-300 rounded-xl border border-white/10 max-h-48 overflow-y-auto space-y-1" style={{ fontFamily: 'monospace', fontSize: '0.875rem', lineHeight: '1.5' }}>
+                            <div ref={thinkingPanelRef} className="thinking-panel glass-panel p-4 text-sm text-gray-300 rounded-xl border border-white/10 max-h-48 overflow-y-auto space-y-1" style={{ fontFamily: 'monospace', fontSize: '0.875rem', lineHeight: '1.5' }}>
                                 {streamLog ? (
                                     streamLog.split('\n').map((line, i) => (
                                         line.trim() && <div key={i}>{line}</div>
