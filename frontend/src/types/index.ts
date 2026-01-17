@@ -43,9 +43,6 @@ export interface BriefingData {
     video_url: string; // URL to video file
     script: ScriptContent;
     sources: Source[];
-<<<<<<< HEAD
     audio_url?: string;
-=======
     media?: MediaItem[];
->>>>>>> 2aac3696aed8cad3e255b019c99fc226d658a207
 }
