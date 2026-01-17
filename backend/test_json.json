@@ -1,0 +1,57 @@
+{
+    "headline": "Global Flashpoints Ignite: Uganda Election Mayhem, Greenland Standoff, Iran Protests Surge",
+    "summary": "Uganda's presidential election spirals into violence as incumbent Yoweri Museveni leads amid opposition rigging claims and reports of Bobi Wine's abduction. NATO forces bolster defenses in Greenland against US threats under Trump, while Iran's protest death toll exceeds 3,000 amid crackdowns. Canada advances EV trade with China, signaling alliance shifts, as Trump's Gaza 'Board of Peace' aims to reshape reconstruction.",
+    "confirmed_facts": [
+        "Uganda's Museveni heads for reelection per unofficial results",
+        "NATO including Denmark, France deploys F-35s and assets to Greenland for Exercise Arctic Sentry",
+        "Rights groups report over 3,000 deaths in Iran protests",
+        "Canada allows 49,000 Chinese EV imports amid US warnings",
+        "Trump announces Gaza 'Board of Peace' for stabilization"
+    ],
+    "unconfirmed_claims": [
+        "Ugandan opposition leader Bobi Wine abducted by military",
+        "US considering lump-sum payments to relocate Greenland residents"
+    ],
+    "recent_changes": [
+        "Uganda military denies Bobi Wine abduction amid internet blackouts (Jan 17)",
+        "FAA warns of elevated military activity over parts of Mexico, Colombia, Ecuador (Jan 17)",
+        "X and Grok suffer global outage (Jan 17)"
+    ],
+    "watch_next": [
+        "Uganda election final results and potential unrest",
+        "US-Denmark talks on Greenland sovereignty",
+        "Iran protest escalation and regime response"
+    ],
+    "sources": [
+        {
+            "account_handle": "@TheWorld",
+            "display_name": "The World",
+            "post_url": "https://x.com/TheWorld/status/2012248853358039329",
+            "label": "journalist"
+        },
+        {
+            "account_handle": "@InfoR00M",
+            "display_name": "Info Room",
+            "post_url": "https://x.com/InfoR00M/status/2012531077722829278",
+            "label": "journalist"
+        },
+        {
+            "account_handle": "@ShahriyarGourgi",
+            "display_name": "Shahriyar Gourgi",
+            "post_url": "https://x.com/ShahriyarGourgi/status/2012292616516165708",
+            "label": "journalist"
+        },
+        {
+            "account_handle": "@onestpress",
+            "display_name": "Olga Nesterova",
+            "post_url": "https://x.com/onestpress/status/2012412926473253234",
+            "label": "journalist"
+        },
+        {
+            "account_handle": "@worldnewsappx",
+            "display_name": "World News: Breaking News",
+            "post_url": "https://x.com/worldnewsappx/status/2012438838572949628",
+            "label": "other"
+        }
+    ]
+}

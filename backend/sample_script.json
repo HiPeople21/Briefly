@@ -1,0 +1,44 @@
+[
+    {
+        "start_sec": 0,
+        "end_sec": 10,
+        "narration": "Global flashpoints ignite: Uganda election mayhem, Greenland standoff, and Iran protests surge. Stay tuned for the latest.",
+        "visuals": "Show a world map highlighting Uganda, Greenland, and Iran with red markers; fade in headline text.",
+        "overlay_text": "Global Flashpoints"
+    },
+    {
+        "start_sec": 10,
+        "end_sec": 25,
+        "narration": "In confirmed developments, Uganda's incumbent President Yoweri Museveni is heading for reelection based on unofficial results. Meanwhile, NATO forces, including Denmark and France, are deploying F-35 jets and assets to Greenland for Exercise Arctic Sentry amid tensions.",
+        "visuals": "Display a map of Uganda with election icons; transition to a map of Greenland showing NATO jet animations landing.",
+        "overlay_text": "CONFIRMED FACTS"
+    },
+    {
+        "start_sec": 25,
+        "end_sec": 40,
+        "narration": "Rights groups report over 3,000 deaths in ongoing protests in Iran. In other news, Canada is allowing 49,000 Chinese electric vehicle imports despite US warnings, and former President Trump has announced a 'Board of Peace' for Gaza stabilization.",
+        "visuals": "Show a map of Iran with protest symbols; cut to a split-screen of Canadian and Chinese flags with EV icons, then a simple timeline of Gaza events.",
+        "overlay_text": "CONFIRMED FACTS"
+    },
+    {
+        "start_sec": 40,
+        "end_sec": 52,
+        "narration": "Turning to unconfirmed claims, reports suggest Ugandan opposition leader Bobi Wine has been abducted by the military. Additionally, the US is reportedly considering lump-sum payments to relocate Greenland residents.",
+        "visuals": "Display a map of Uganda with question mark overlays; transition to Greenland map with relocation arrows.",
+        "overlay_text": "DEVELOPING CLAIMS"
+    },
+    {
+        "start_sec": 52,
+        "end_sec": 65,
+        "narration": "Recent changes include the Ugandan military denying Bobi Wine's abduction amid internet blackouts. The FAA has warned of elevated military activity over Mexico, Colombia, and Ecuador. Social platforms X and Grok experienced a global outage.",
+        "visuals": "Show a timeline graphic starting January 17 with icons for Uganda blackout, FAA warning map of Latin America, and outage symbols for X and Grok.",
+        "overlay_text": "RECENT CHANGES"
+    },
+    {
+        "start_sec": 65,
+        "end_sec": 78,
+        "narration": "What to watch next: Uganda's final election results and potential unrest, US-Denmark talks on Greenland sovereignty, and possible escalation in Iran's protests along with regime responses.",
+        "visuals": "Display a forward-looking timeline with icons for Uganda elections, Greenland talks, and Iran protests; end with a world map fade-out.",
+        "overlay_text": "WHAT TO WATCH"
+    }
+]
