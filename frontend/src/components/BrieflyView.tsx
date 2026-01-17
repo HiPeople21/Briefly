@@ -98,7 +98,21 @@ export const BrieflyView: React.FC<{ data: BriefingData }> = ({ data }) => {
                             {data.script.confirmed_facts.map((fact, i) => (
                                 <li key={i} className="flex gap-3 text-gray-200">
                                     <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2.5 shrink-0" />
-                                    {fact}
+                                    <div className="flex-1">
+                                        <span>
+                                            {typeof fact === 'string' ? fact : fact.text}
+                                        </span>
+                                        {typeof fact === 'object' && fact.sourceUrl && (
+                                            <a
+                                                href={fact.sourceUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="ml-2 text-blue-400 hover:text-blue-300 text-xs underline transition-colors"
+                                            >
+                                                Source
+                                            </a>
+                                        )}
+                                    </div>
                                 </li>
                             ))}
                         </ul>
