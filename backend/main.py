@@ -90,7 +90,7 @@ async def generate_briefing(request: BriefingRequest):
 {
   "headline": "engaging title",
   "summary": "2-3 sentence overview",
-  "confirmed_facts": ["fact1", "fact2", "fact3"],
+  "confirmed_facts": [{"text": "fact1", "sourceUrl": "https://x.com/user/status/id"}, {"text": "fact2", "sourceUrl": "https://x.com/user/status/id"}],
   "unconfirmed_claims": ["claim1", "claim2"],
   "recent_changes": ["update1"],
   "watch_next": ["related_topic1", "related_topic2"],
@@ -167,7 +167,7 @@ async def websocket_briefing(websocket: WebSocket):
 {{
   "headline": "engaging title",
   "summary": "2-3 sentence overview",
-  "confirmed_facts": ["fact1", "fact2", "fact3"],
+    "confirmed_facts": [{{"text": "fact1", "sourceUrl": "https://x.com/user/status/id"}}, {{"text": "fact2", "sourceUrl": "https://x.com/user/status/id"}}],
   "unconfirmed_claims": ["claim1", "claim2"],
   "recent_changes": ["update1"],
   "watch_next": ["related_topic1", "related_topic2"],
