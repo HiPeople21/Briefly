@@ -49,7 +49,7 @@ async def generate_briefing(request: BriefingRequest):
         
         # System prompt for briefing
         chat.append(
-            user("You are a news analyst. Return ONLY valid JSON with this structure: {\"headline\": \"engaging title\", \"summary\": \"2-3 sentence overview\", \"confirmed_facts\": [\"fact1\", \"fact2\", \"fact3\"], \"unconfirmed_claims\": [\"claim1\", \"claim2\"], \"recent_changes\": [\"update1\"], \"watch_next\": [\"related_topic1\", \"related_topic2\"], \"sources\": [{\"account_handle\": \"@username\", \"display_name\": \"Full Name\", \"post_url\": \"https://x.com/...\", \"label\": \"official|journalist|eyewitness|other\"}]}")
+            user("You are a news analyst. Return ONLY valid JSON with this structure: {\"headline\": \"engaging title\", \"summary\": \"2-3 sentence overview\", \"confirmed_facts\": [\"fact1\", \"fact2\", \"fact3\"], \"unconfirmed_claims\": [\"claim1\", \"claim2\"], \"recent_changes\": [\"update1\"], \"watch_next\": [\"related_topic1\", \"related_topic2\"], \"sources\": [{\"account_handle\": \"@username\", \"display_name\": \"Full Name\", \"excerpt\": \"quote or key statement\", \"time_ago\": \"5m ago\", \"post_url\": \"https://x.com/...\", \"label\": \"official|journalist|eyewitness|other\"}]}")
         )
         
         # User request

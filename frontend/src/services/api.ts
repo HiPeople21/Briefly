@@ -107,10 +107,10 @@ export const generateBriefing = async (topic: BriefingTopic): Promise<BriefingDa
                 recent_changes: parsed.recent_changes || [],
                 watch_next: parsed.watch_next || []
             },
-            sources: (parsed.sources || []).map((source: any) => ({
+            sources: (parsed.sources || []).map((source: any, idx: number) => ({
                 account_handle: source.account_handle || `@user_${Math.random().toString(36).substr(2, 9)}`,
                 display_name: source.display_name || "Briefing Source",
-                excerpt: source.excerpt || "",
+                excerpt: source.excerpt || parsed.confirmed_facts?.[idx] || "",
                 time_ago: source.time_ago || "just now",
                 post_url: source.post_url || "https://x.com",
                 label: (source.label || "official") as const
