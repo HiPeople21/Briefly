@@ -37,14 +37,12 @@ def filter_x_videos(content: str) -> str:
                     )
                     
                     if is_x_video:
-                        print(f"DEBUG: Filtered X video: {url[:60]}...", file=sys.stderr, flush=True)
                         continue
                 
                 filtered_media.append(item)
             data["media"] = filtered_media
         return json.dumps(data)
     except Exception as e:
-        print(f"DEBUG: Error filtering X videos: {e}", file=sys.stderr, flush=True)
         return content
 
 
@@ -150,8 +148,6 @@ async def websocket_briefing(websocket: WebSocket):
             await websocket.close()
             return
 
-        print(f"DEBUG: Starting briefing generation for '{topic}' in {location}", file=sys.stderr, flush=True)
-        
         # Send status that we're starting generation
         await websocket.send_json({
             "type": "status",
@@ -160,7 +156,6 @@ async def websocket_briefing(websocket: WebSocket):
 
         # Run blocking chat.stream() in thread pool
         def run_briefing():
-            print(f"DEBUG: In thread, creating chat", file=sys.stderr, flush=True)
             chat = client.chat.create(
                 model="grok-4-1-fast",
                 tools=[x_search(enable_image_understanding=True, enable_video_understanding=True)],
@@ -201,20 +196,17 @@ CRITICAL: Include ONLY 2-3 images from X about {location} (pbs.twimg.com URLs). 
             content = ""
             thinking_emitted = False
             tool_searches = set()
-            print(f"DEBUG: Starting stream", file=sys.stderr, flush=True)
             for response, chunk in chat.stream():
                 has_reasoning = getattr(response, "usage", None) and getattr(response.usage, "reasoning_tokens", None)
                 has_content = bool(chunk.content)
                 reasoning_count = getattr(response.usage, "reasoning_tokens", 0) if has_reasoning else 0
-                print(f"DEBUG: Got chunk, reasoning={reasoning_count}, content_len={len(chunk.content) if has_content else 0}", file=sys.stderr, flush=True)
                 
                 # Emit high-level thinking message only once
                 if has_reasoning and not thinking_emitted:
-                    print(f"DEBUG: Emitting thinking message", file=sys.stderr, flush=True)
                     thinking_emitted = True
                     yield {
                         "type": "thinking",
-                        "content": f"🤔 Analyzing the topic and searching for current information...\n"
+                        "content": f"\n✨ Researching '{topic}' in {location}. Analyzing current events, finding relevant images, and compiling sources...\n"
                     }
 
                 # Surface server-side tool calls as they happen with friendly messages
@@ -222,7 +214,6 @@ CRITICAL: Include ONLY 2-3 images from X about {location} (pbs.twimg.com URLs). 
                     tool_name = tool_call.function.name
                     if tool_name not in tool_searches:
                         tool_searches.add(tool_name)
-                        print(f"DEBUG: Tool call: {tool_name}", file=sys.stderr, flush=True)
                         # Show tool details in human-readable format
                         try:
                             args = json.loads(tool_call.function.arguments) if isinstance(tool_call.function.arguments, str) else tool_call.function.arguments
@@ -236,22 +227,22 @@ CRITICAL: Include ONLY 2-3 images from X about {location} (pbs.twimg.com URLs). 
                                     if "semantic" in tool_name:
                                         yield {
                                             "type": "tool",
-                                            "content": f"📚 Finding related sources on: {display_query}\n"
+                                            "content": f"Finding sources discussing: {display_query}\n"
                                         }
                                     elif "keyword" in tool_name:
                                         yield {
                                             "type": "tool",
-                                            "content": f"🔎 Searching keywords: {display_query}\n"
+                                            "content": f"Searching for keywords: {display_query}\n"
                                         }
                                     else:
                                         yield {
                                             "type": "tool",
-                                            "content": f"🔍 Searching for: {display_query}\n"
+                                            "content": f"Searching X for images: {display_query}\n"
                                         }
                                 else:
                                     yield {
                                         "type": "tool",
-                                        "content": f"🔍 Gathering current information...\n"
+                                        "content": f"Gathering current information and visuals...\n"
                                     }
                             else:
                                 yield {
@@ -259,22 +250,19 @@ CRITICAL: Include ONLY 2-3 images from X about {location} (pbs.twimg.com URLs). 
                                     "content": f"⚙️ Processing information...\n"
                                 }
                         except Exception as e:
-                            print(f"DEBUG: Could not parse tool args: {e}", file=sys.stderr, flush=True)
                             yield {
                                 "type": "tool",
-                                "content": f"⚙️ Processing information...\n"
+                                "content": f"🔄 Processing information...\n"
                             }
 
                 # Send generated content chunks
                 if has_content:
                     content += chunk.content
-                    print(f"DEBUG: Emitting content chunk, total={len(content)}", file=sys.stderr, flush=True)
                     yield {
                         "type": "chunk",
                         "content": chunk.content
                     }
             
-            print(f"DEBUG: Stream complete, final content length={len(content)}", file=sys.stderr, flush=True)
             # Filter out X videos before sending result
             filtered_content = filter_x_videos(content)
             yield {
@@ -298,15 +286,13 @@ CRITICAL: Include ONLY 2-3 images from X about {location} (pbs.twimg.com URLs). 
                     # Give the event loop a chance to process other tasks
                     await asyncio.sleep(0)
         except Exception as send_err:
-            print(f"DEBUG: Error sending message: {send_err}", file=sys.stderr, flush=True)
+            pass
         
         await websocket.close()
 
     except WebSocketDisconnect:
-        print("DEBUG: WebSocket disconnected", file=sys.stderr, flush=True)
         return
     except Exception as e:
-        print(f"DEBUG: Error in websocket: {str(e)}", file=sys.stderr, flush=True)
         try:
             await websocket.send_json({"type": "error", "message": str(e)})
         finally:

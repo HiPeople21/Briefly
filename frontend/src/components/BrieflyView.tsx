@@ -20,11 +20,6 @@ export const BrieflyView: React.FC<{ data: BriefingData }> = ({ data }) => {
     return (
         <div className="w-full max-w-4xl mx-auto animate-fade-in pb-20">
 
-            {/* Media Carousel - Above Title */}
-            {data.media && data.media.length > 0 && (
-                <MediaCarousel media={data.media} />
-            )}
-
             {/* Video Section */}
             <div className="relative aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl mb-8 group border border-white/5">
                 <video
@@ -55,6 +50,13 @@ export const BrieflyView: React.FC<{ data: BriefingData }> = ({ data }) => {
                     Live Update
                 </div>
             </div>
+
+            {/* Media Carousel - Under Video */}
+            {data.media && data.media.length > 0 && (
+                <div className="mb-12">
+                    <MediaCarousel media={data.media} />
+                </div>
+            )}
 
             {/* Hero Content */}
             <div className="mb-12">
