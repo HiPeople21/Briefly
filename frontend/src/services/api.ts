@@ -1,4 +1,4 @@
-import { BriefingData, BriefingTopic } from '../types';
+import { BriefingData, BriefingTopic, VideoScript } from '../types';
 
 const MOCK_SOURCE_IMAGES = [
     "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=100&auto=format&fit=crop&q=60",
@@ -6,61 +6,134 @@ const MOCK_SOURCE_IMAGES = [
     "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&auto=format&fit=crop&q=60"
 ];
 
-export const generateBriefing = async (topic: BriefingTopic): Promise<BriefingData> => {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 2500));
-
-    return {
-        id: `briefing_${Date.now()}`,
-        topic,
-        generated_at: new Date().toISOString(),
-        headline: "Global Markets Rally Following Tech Breakthrough",
-        summary: "Major indices hit record highs as breakthrough in quantum computing stability is announced by leading consortium. Details remain sparse but initial confirmations suggest a viable path to commercialization by 2027.",
-        status: "confirmed",
-        video_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", // Placeholder video
-        script: {
-            headline: "Quantum Leap for Global Markets",
-            confirmed_facts: [
-                "Consortium announces 99.9% stable qubits",
-                "Nasdaq jumps 4% in pre-market trading",
-                "Major tech stocks halted due to volatility"
-            ],
-            unconfirmed_claims: [
-                "Rumors of government contract worth $50B",
-                "Leaked internal memos suggest prototype exists"
-            ],
-            recent_changes: [
-                "Official press conference scheduled for 2 PM EST"
-            ],
-            watch_next: [
-                "Tech sector earnings reports later today"
-            ]
+export const generateScript = async (topic: string): Promise<BriefingData> => {
+    const response = await fetch('http://localhost:8000/generate-script', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
         },
-        sources: [
-            {
-                account_handle: "@tech_insider",
-                display_name: "Tech Insider",
-                excerpt: "Sources at the lab confirm the breakthrough is real. This changes everything.",
-                time_ago: "12m ago",
-                post_url: "#",
-                label: "journalist"
+        body: JSON.stringify({ topic }),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to generate script: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    try {
+        // Parse the JSON response from Grok
+        const parsed = JSON.parse(data.script);
+        
+        // Transform into BriefingData structure
+        return {
+            id: `briefing_${Date.now()}`,
+            topic: 'tech' as BriefingTopic,
+            generated_at: new Date().toISOString(),
+            headline: parsed.headline || topic,
+            summary: parsed.summary || "Generated content from Grok AI",
+            status: "confirmed",
+            video_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+            script: {
+                headline: parsed.headline || topic,
+                confirmed_facts: parsed.confirmed_facts || [],
+                unconfirmed_claims: parsed.unconfirmed_claims || [],
+                recent_changes: parsed.recent_changes || [],
+                watch_next: parsed.watch_next || []
             },
-            {
-                account_handle: "@market_watch",
-                display_name: "Market Watch",
-                excerpt: "Unprecedented volume in semiconductor stocks. The market is pricing in a massive shift.",
-                time_ago: "5m ago",
-                post_url: "#",
-                label: "official"
+            sources: (parsed.sources || []).map((source: any) => ({
+                account_handle: source.account_handle || `@user_${Math.random().toString(36).substr(2, 9)}`,
+                display_name: source.display_name || "Source",
+                excerpt: source.excerpt || "",
+                time_ago: source.time_ago || "just now",
+                post_url: source.post_url || "https://x.com",
+                label: (source.label || "official") as const
+            })).slice(0, 5)
+        };
+    } catch (e) {
+        // Fallback if JSON parsing fails
+        return {
+            id: `briefing_${Date.now()}`,
+            topic: 'tech' as BriefingTopic,
+            generated_at: new Date().toISOString(),
+            headline: topic,
+            summary: data.script || "Generated content from Grok AI",
+            status: "confirmed",
+            video_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+            script: {
+                headline: topic,
+                confirmed_facts: [data.script || "Content generated"],
+                unconfirmed_claims: [],
+                recent_changes: [],
+                watch_next: []
             },
-            {
-                account_handle: "@deep_research",
-                display_name: "Dr. Alice Chen",
-                excerpt: "I've seen the data. The error correction rates are theoretically impossible, yet here we are.",
-                time_ago: "2m ago",
-                post_url: "#",
-                label: "eyewitness"
-            }
-        ]
-    };
+            sources: []
+        };
+    }
+};
+
+export const generateBriefing = async (topic: BriefingTopic): Promise<BriefingData> => {
+    const response = await fetch('http://localhost:8000/generate-briefing', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ topic }),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to generate briefing: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    try {
+        // Parse the JSON response from Grok
+        const parsed = JSON.parse(data.script);
+        
+        // Transform into BriefingData structure
+        return {
+            id: `briefing_${Date.now()}`,
+            topic,
+            generated_at: new Date().toISOString(),
+            headline: parsed.headline || topic,
+            summary: parsed.summary || "Generated briefing from Grok AI",
+            status: "confirmed",
+            video_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+            script: {
+                headline: parsed.headline || topic,
+                confirmed_facts: parsed.confirmed_facts || [],
+                unconfirmed_claims: parsed.unconfirmed_claims || [],
+                recent_changes: parsed.recent_changes || [],
+                watch_next: parsed.watch_next || []
+            },
+            sources: (parsed.sources || []).map((source: any) => ({
+                account_handle: source.account_handle || `@user_${Math.random().toString(36).substr(2, 9)}`,
+                display_name: source.display_name || "Briefing Source",
+                excerpt: source.excerpt || "",
+                time_ago: source.time_ago || "just now",
+                post_url: source.post_url || "https://x.com",
+                label: (source.label || "official") as const
+            })).slice(0, 5)
+        };
+    } catch (e) {
+        // Fallback if JSON parsing fails
+        return {
+            id: `briefing_${Date.now()}`,
+            topic,
+            generated_at: new Date().toISOString(),
+            headline: topic,
+            summary: data.script || "Generated briefing from Grok AI",
+            status: "confirmed",
+            video_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+            script: {
+                headline: topic,
+                confirmed_facts: [data.script || "Content generated"],
+                unconfirmed_claims: [],
+                recent_changes: [],
+                watch_next: []
+            },
+            sources: []
+        };
+    }
 };

@@ -2,6 +2,10 @@ export type BriefingTopic = 'global' | 'tech' | 'markets' | 'sports';
 
 export type BriefingStatus = 'confirmed' | 'developing';
 
+export interface VideoScript {
+    script: string;
+}
+
 export interface Source {
     account_handle: string;
     display_name: string;

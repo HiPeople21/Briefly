@@ -1,6 +1,6 @@
 import React from 'react';
 import { BriefingTopic } from '../types';
-import { Loader2, Zap } from 'lucide-react';
+import { Loader2, Zap, Film } from 'lucide-react';
 import { clsx } from 'clsx';
 
 interface BrieflyControlsProps {
@@ -9,6 +9,7 @@ interface BrieflyControlsProps {
     onGenerate: () => void;
     isLoading: boolean;
     hasData: boolean;
+    onSwitchToScript?: () => void;
 }
 
 export const BrieflyControls: React.FC<BrieflyControlsProps> = ({
@@ -16,7 +17,8 @@ export const BrieflyControls: React.FC<BrieflyControlsProps> = ({
     setTopic,
     onGenerate,
     isLoading,
-    hasData
+    hasData,
+    onSwitchToScript
 }) => {
     return (
         <div className={clsx(
@@ -77,6 +79,17 @@ export const BrieflyControls: React.FC<BrieflyControlsProps> = ({
                     <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
                 </button>
             </div>
+
+            {/* Script Generation Button */}
+            {!hasData && (
+                <button
+                    onClick={onSwitchToScript}
+                    className="text-sm text-gray-400 hover:text-blue-400 transition-colors flex items-center gap-2 mt-4"
+                >
+                    <Film className="w-4 h-4" />
+                    Or generate a video script with Grok
+                </button>
+            )}
 
         </div>
     );

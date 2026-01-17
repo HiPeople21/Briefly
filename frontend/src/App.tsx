@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { BrieflyControls } from './components/BrieflyControls';
 import { BrieflyView } from './components/BrieflyView';
-import { generateBriefing } from './services/api';
-import { BriefingData, BriefingTopic } from './types';
+import { generateBriefing, generateScript } from './services/api';
+import { BriefingData, BriefingTopic, VideoScript } from './types';
 import { clsx } from 'clsx';
 
 function App() {
     const [topic, setTopic] = useState<BriefingTopic>('global');
     const [isLoading, setIsLoading] = useState(false);
     const [data, setData] = useState<BriefingData | null>(null);
+    const [scriptTopic, setScriptTopic] = useState('');
+    const [generatedScript, setGeneratedScript] = useState<VideoScript | null>(null);
+    const [showScriptMode, setShowScriptMode] = useState(false);
 
     const handleGenerate = async () => {
         setIsLoading(true);
@@ -20,6 +23,27 @@ function App() {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleGenerateScript = async () => {
+        if (!scriptTopic.trim()) return;
+        setIsLoading(true);
+        try {
+            const result = await generateScript(scriptTopic);
+            setData(result);
+            setShowScriptMode(true);
+        } catch (error) {
+            console.error("Failed to generate script", error);
+            alert('Error generating script. Make sure the backend is running.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const resetApp = () => {
+        setData(null);
+        setGeneratedScript(null);
+        setShowScriptMode(false);
     };
 
     return (
@@ -40,31 +64,61 @@ function App() {
                 {/* Top Controls Bar (When data exists) */}
                 <div className={clsx(
                     "w-full max-w-4xl mx-auto flex justify-between items-center mb-12 transition-all duration-500",
-                    data ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-10 absolute pointer-events-none"
+                    data || generatedScript ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-10 absolute pointer-events-none"
                 )}>
                     <div
                         className="text-xl font-display font-bold cursor-pointer hover:opacity-80 transition-opacity"
-                        onClick={() => setData(null)}
+                        onClick={resetApp}
                     >
                         Briefly
                     </div>
                     <button
-                        onClick={() => setData(null)}
+                        onClick={resetApp}
                         className="text-sm text-gray-400 hover:text-white transition-colors"
                     >
-                        New Search
+                        {showScriptMode ? 'Back to Briefing' : 'New Search'}
                     </button>
                 </div>
 
-                <BrieflyControls
-                    topic={topic}
-                    setTopic={setTopic}
-                    onGenerate={handleGenerate}
-                    isLoading={isLoading}
-                    hasData={!!data}
-                />
-
-                {data && <BrieflyView data={data} />}
+                {!showScriptMode ? (
+                    <>
+                        <BrieflyControls
+                            topic={topic}
+                            setTopic={setTopic}
+                            onGenerate={handleGenerate}
+                            isLoading={isLoading}
+                            hasData={!!data}
+                            onSwitchToScript={() => setShowScriptMode(true)}
+                        />
+                        {data && <BrieflyView data={data} />}
+                    </>
+                ) : (
+                    <div className="w-full max-w-4xl mx-auto animate-fade-in">
+                        <div className="flex flex-col items-center gap-6 mb-8">
+                            <h2 className="text-3xl font-display font-bold text-white">Generate Video Script</h2>
+                            <div className="flex gap-4 w-full max-w-md">
+                                <input
+                                    type="text"
+                                    placeholder="Enter video topic..."
+                                    value={scriptTopic}
+                                    onChange={(e) => setScriptTopic(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleGenerateScript()}
+                                    disabled={isLoading}
+                                    className="flex-1 glass-panel rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder:text-gray-500"
+                                />
+                                <button
+                                    onClick={handleGenerateScript}
+                                    disabled={isLoading || !scriptTopic.trim()}
+                                    className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-semibold transition-all"
+                                >
+                                    {isLoading ? 'Generating...' : 'Generate'}
+                                </button>
+                            </div>
+                        </div>
+                        
+                        {data && <BrieflyView data={data} />}
+                    </div>
+                )}
 
             </div>
         </div>
